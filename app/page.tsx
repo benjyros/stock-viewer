@@ -4,6 +4,7 @@ import { createClient } from "@/utils/supabase/server";
 import ConnectSupabaseSteps from "@/components/tutorial/ConnectSupabaseSteps";
 import SignUpUserSteps from "@/components/tutorial/SignUpUserSteps";
 import Header from "@/components/Header";
+import { Button } from "@/components/ui/button";
 
 export default async function Index() {
   const canInitSupabaseClient = () => {
@@ -49,6 +50,7 @@ export default async function Index() {
           </a>
         </p>
       </footer>
+      <Button>Button</Button>
     </div>
   );
 }
