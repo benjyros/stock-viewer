@@ -1,0 +1,10 @@
+{
+    "Index": {
+      "title": "Welcome to my internationalized app!",
+      "description": "This is a sample app using Next.js, Supabase, and next-intl."
+    },
+    "Navigation": {
+      "home": "Home",
+      "protected": "Protected"
+    }
+  }
