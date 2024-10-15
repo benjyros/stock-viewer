@@ -6,5 +6,13 @@
     "Navigation": {
       "home": "Home",
       "protected": "Protected"
+    },
+    "LanguageSwitcher": {
+      "selectLanguage": "Select Language",
+      "language": {
+        "en": "English",
+        "de": "Deutsch",
+        "fr": "Français"
+      }
     }
   }

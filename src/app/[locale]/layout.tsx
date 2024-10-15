@@ -7,10 +7,10 @@ import { GeistSans } from "geist/font/sans";
 import { ThemeProvider } from "next-themes";
 import Link from "next/link";
 import "../globals.css";
-import { NextIntlClientProvider, useTranslations } from "next-intl";
-import { notFound } from "next/navigation";
-import { ReactNode } from "react";
+import { NextIntlClientProvider } from "next-intl";
 import LanguageSwitcher from "@/src/components/LanguageSwitcher";
+import { getMessages, unstable_setRequestLocale } from "next-intl/server";
+import { routing } from "@/src/i18n/routing";
 
 const defaultUrl = process.env.VERCEL_URL
   ? `https://${process.env.VERCEL_URL}`
@@ -23,21 +23,17 @@ export const metadata = {
 };
 
 interface LocaleLayoutProps {
-  children: ReactNode;
+  children: React.ReactNode;
   params: { locale: string };
 }
 
 export function generateStaticParams() {
-  return [{ locale: 'en' }, { locale: 'de' }, { locale: 'fr' }];
+  return routing.locales.map((locale) => ({locale}));
 }
 
 export default async function LocaleLayout({ children, params: { locale } }: LocaleLayoutProps) {
-  let messages;
-  try {
-    messages = (await import(`@/messages/${locale}.json`)).default;
-  } catch (error) {
-    notFound();
-  }
+  unstable_setRequestLocale(locale);
+  const messages = await getMessages();
 
   return (
     <html lang="en" className={GeistSans.className} suppressHydrationWarning>

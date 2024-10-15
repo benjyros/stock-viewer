@@ -3,8 +3,14 @@ import ConnectSupabaseSteps from "@/src/components/tutorial/connect-supabase-ste
 import SignUpUserSteps from "@/src/components/tutorial/sign-up-user-steps";
 import { hasEnvVars } from "@/utils/supabase/check-env-vars";
 import { useTranslations } from "next-intl";
+import { unstable_setRequestLocale } from "next-intl/server";
 
-export default function Index() {
+interface IndexProps {
+  params: { locale: string };
+}
+
+export default function Index({params: {locale}}: IndexProps) {
+  unstable_setRequestLocale(locale);
   const t = useTranslations('Index');
 
   return (
