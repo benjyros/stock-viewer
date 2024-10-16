@@ -1,7 +1,7 @@
 "use client";
 
 import React, { createContext, useContext, useEffect, useState } from "react";
-import { createClient } from "@/lib/supabase/client";
+import { supabase } from "@/lib/supabase";
 
 interface User {
   id: string;
@@ -21,12 +21,9 @@ interface UserContextProps {
 
 const UserContext = createContext<UserContextProps | undefined>(undefined);
 
-const supabase = createClient();
-
 export function UserProvider({ children }: { children: React.ReactNode }) {
   const [userDetails, setUserDetails] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
-  console.log(supabase);
 
   const fetchUserDetails = async (user: any) => {
     try {
@@ -95,7 +92,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
     return () => {
       authListener?.subscription?.unsubscribe();
     };
-  }, [supabase]);
+  }, []);
 
   return (
     <UserContext.Provider value={{ userDetails, loading }}>
