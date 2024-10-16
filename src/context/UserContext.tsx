@@ -1,7 +1,14 @@
 "use client";
 
-import React, { createContext, useContext, useEffect, useState } from "react";
+import React, {
+  createContext,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 import { supabase } from "@/lib/supabase";
+import { createClient } from "@/lib/supabase/client";
 
 interface User {
   id: string;
@@ -20,10 +27,21 @@ interface UserContextProps {
 }
 
 const UserContext = createContext<UserContextProps | undefined>(undefined);
+const supabase4 = useMemo(() => createClient(), []);
 
 export function UserProvider({ children }: { children: React.ReactNode }) {
   const [userDetails, setUserDetails] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  console.log(supabase);
+  console.log("supabase", supabase);
+
+  const supabase2 = createClient();
+  console.log(supabase2);
+  console.log("supabase2", supabase2);
+
+  const supabase3 = useMemo(() => createClient(), []);
+  console.log("supabase3", supabase3);
+  console.log("supabase4", supabase4);
 
   const fetchUserDetails = async (user: any) => {
     try {
