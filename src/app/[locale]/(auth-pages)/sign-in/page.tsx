@@ -6,10 +6,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { signIn } from "@/lib/supabase/authClient";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 
-export default function Login({ searchParams }: { searchParams: Message }) {
+function LoginFunction({ searchParams }: { searchParams: Message }) {
   const [mounted, setMounted] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -77,5 +77,13 @@ export default function Login({ searchParams }: { searchParams: Message }) {
         <FormMessage message={searchParams} />
       </div>
     </form>
+  );
+}
+
+export default function Login({ searchParams }: { searchParams: Message }) {
+  return (
+    <Suspense>
+      <LoginFunction searchParams={searchParams} />
+    </Suspense>
   );
 }
