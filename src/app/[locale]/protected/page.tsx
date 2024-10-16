@@ -6,8 +6,12 @@ import { InfoIcon } from "lucide-react";
 export default function ProtectedPage() {
   const { userDetails, loading } = useUser();
 
-  if (loading || !userDetails) {
+  if (loading) {
     return <div>Loading...</div>;
+  }
+
+  if (!userDetails) {
+    return <div>No user data found. Please sign in.</div>;
   }
 
   return (

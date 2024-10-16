@@ -39,18 +39,18 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({
       ...user,
       ...userData,
     });
+    setLoading(false);
   };
 
   useEffect(() => {
     const { data: authListener } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-        console.log(event, session);
         if (event === "SIGNED_IN" && session) {
           await fetchUserDetails(session.user);
         } else if (event === "SIGNED_OUT") {
           setUserDetails(null);
+          setLoading(false);
         }
-        setLoading(false);
       }
     );
 
@@ -63,9 +63,8 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({
         await fetchUserDetails(user);
       } else {
         setUserDetails(null);
+        setLoading(false);
       }
-
-      setLoading(false);
     };
 
     fetchUser();
