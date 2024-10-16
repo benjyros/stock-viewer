@@ -12,12 +12,11 @@ import {
 import { Link } from "@/i18n/routing";
 import { useUser } from "../context/UserContext";
 import { signOut } from "@/lib/supabase/authClient";
-import { useRouter, usePathname } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 
 export function UserNav() {
   const [isMounted, setIsMounted] = useState(false);
-  const router = useRouter();
   const pathname = usePathname();
   const { userDetails, loading } = useUser();
 

@@ -1,13 +1,7 @@
 "use client";
 
-import React, {
-  createContext,
-  useContext,
-  useEffect,
-  useMemo,
-  useState,
-} from "react";
-import { supabase } from "@/lib/supabase";
+import React, { createContext, useContext, useEffect, useState } from "react";
+import supabase from "@/lib/supabase";
 
 interface User {
   id: string;
@@ -28,9 +22,12 @@ interface UserContextProps {
 const UserContext = createContext<UserContextProps | undefined>(undefined);
 
 export function UserProvider({ children }: { children: React.ReactNode }) {
+  console.log("UserProvider rendered");
   const [userDetails, setUserDetails] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
-  console.log(supabase);
+
+  const supabase2 = React.useRef(supabase);
+  console.log("supabase2", supabase2);
   const fetchUserDetails = async (user: any) => {
     try {
       console.log("Fetching user details for:", user.id);
@@ -59,6 +56,8 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
   };
 
   useEffect(() => {
+    console.log("UserProvider useEffect called");
+    console.log("supabase", supabase);
     const { data: authListener } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         if (event === "SIGNED_IN" && session) {
