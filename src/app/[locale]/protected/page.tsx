@@ -2,9 +2,19 @@
 
 import { useUser } from "@/context/UserContext";
 import { InfoIcon } from "lucide-react";
+import { useEffect, useState } from "react";
 
 export default function ProtectedPage() {
+  const [mounted, setMounted] = useState(false);
   const { userDetails, loading } = useUser();
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted) {
+    return null;
+  }
 
   if (loading) {
     return <div>Loading...</div>;
