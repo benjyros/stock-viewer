@@ -27,7 +27,6 @@ interface UserContextProps {
 }
 
 const UserContext = createContext<UserContextProps | undefined>(undefined);
-const supabase4 = useMemo(() => createClient(), []);
 
 export function UserProvider({ children }: { children: React.ReactNode }) {
   const [userDetails, setUserDetails] = useState<User | null>(null);
@@ -41,7 +40,6 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
 
   const supabase3 = useMemo(() => createClient(), []);
   console.log("supabase3", supabase3);
-  console.log("supabase4", supabase4);
 
   const fetchUserDetails = async (user: any) => {
     try {
