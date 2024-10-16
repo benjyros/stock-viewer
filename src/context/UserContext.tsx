@@ -21,47 +21,61 @@ interface UserContextProps {
 
 const UserContext = createContext<UserContextProps | undefined>(undefined);
 
-export const UserProvider: React.FC<{ children: React.ReactNode }> = ({
-  children,
-}) => {
+export function UserProvider({ children }: { children: React.ReactNode }) {
   const [userDetails, setUserDetails] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const supabase = createClient();
 
   const fetchUserDetails = async (user: any) => {
-    const { data: userData } = await supabase
-      .from("users")
-      .select("firstName, lastName")
-      .eq("id", user.id)
-      .single();
+    try {
+      const { data: userData } = await supabase
+        .from("users")
+        .select("firstName, lastName")
+        .eq("id", user.id)
+        .single();
 
-    setUserDetails({
-      ...user,
-      ...userData,
-    });
-    setLoading(false);
+      setUserDetails({
+        ...user,
+        ...userData,
+      });
+    } catch (error) {
+      console.error("Error fetching user details:", error);
+      setUserDetails(null);
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
     const { data: authListener } = supabase.auth.onAuthStateChange(
       async (event, session) => {
+        setLoading(true);
+
         if (event === "SIGNED_IN" && session) {
           await fetchUserDetails(session.user);
         } else if (event === "SIGNED_OUT") {
           setUserDetails(null);
+          setLoading(false);
+        } else {
           setLoading(false);
         }
       }
     );
 
     const fetchUser = async () => {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
+      try {
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
 
-      if (user) {
-        await fetchUserDetails(user);
-      } else {
+        if (user) {
+          await fetchUserDetails(user);
+        } else {
+          setUserDetails(null);
+          setLoading(false);
+        }
+      } catch (error) {
+        console.error("Error fetching user on load:", error);
         setUserDetails(null);
         setLoading(false);
       }
@@ -79,7 +93,7 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({
       {children}
     </UserContext.Provider>
   );
-};
+}
 
 export const useUser = () => {
   const context = useContext(UserContext);
