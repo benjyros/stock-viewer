@@ -21,10 +21,12 @@ interface UserContextProps {
 
 const UserContext = createContext<UserContextProps | undefined>(undefined);
 
+const supabase = createClient();
+
 export function UserProvider({ children }: { children: React.ReactNode }) {
   const [userDetails, setUserDetails] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
-  const supabase = createClient();
+  console.log(supabase);
 
   const fetchUserDetails = async (user: any) => {
     try {
@@ -36,7 +38,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
         .single();
 
       if (error) {
-        console.error("Error fetching user details:", error);
+        throw error; // Throw the error to be caught in the catch block
       }
 
       console.log("User data fetched:", userData);
@@ -46,7 +48,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
         ...userData,
       });
     } catch (error) {
-      console.error("Error fetching user details:", error);
+      console.error("Fetch user details exception:", error);
       setUserDetails(null);
     } finally {
       setLoading(false);
@@ -56,9 +58,8 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const { data: authListener } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-        setLoading(true);
-
         if (event === "SIGNED_IN" && session) {
+          setLoading(true);
           await fetchUserDetails(session.user);
         } else if (event === "SIGNED_OUT") {
           setUserDetails(null);
@@ -76,6 +77,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
         } = await supabase.auth.getUser();
 
         if (user) {
+          setLoading(true);
           await fetchUserDetails(user);
         } else {
           setUserDetails(null);
