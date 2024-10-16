@@ -8,7 +8,6 @@ import React, {
   useState,
 } from "react";
 import { supabase } from "@/lib/supabase";
-import { createClient } from "@/lib/supabase/client";
 
 interface User {
   id: string;
@@ -31,15 +30,6 @@ const UserContext = createContext<UserContextProps | undefined>(undefined);
 export function UserProvider({ children }: { children: React.ReactNode }) {
   const [userDetails, setUserDetails] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
-  console.log(supabase);
-  console.log("supabase", supabase);
-
-  const supabase2 = createClient();
-  console.log(supabase2);
-  console.log("supabase2", supabase2);
-
-  const supabase3 = useMemo(() => createClient(), []);
-  console.log("supabase3", supabase3);
 
   const fetchUserDetails = async (user: any) => {
     try {
