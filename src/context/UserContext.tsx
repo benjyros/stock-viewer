@@ -22,42 +22,40 @@ interface UserContextProps {
 const UserContext = createContext<UserContextProps | undefined>(undefined);
 
 export function UserProvider({ children }: { children: React.ReactNode }) {
-  console.log("UserProvider rendered");
   const [userDetails, setUserDetails] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
-
-  const supabase2 = React.useRef(supabase);
-  console.log("supabase2", supabase2);
-  const fetchUserDetails = async (user: any) => {
-    try {
-      console.log("Fetching user details for:", user.id);
-      const { data: userData, error } = await supabase
-        .from("users")
-        .select("firstName, lastName")
-        .eq("id", user.id)
-        .single();
-
-      if (error) {
-        throw error; // Throw the error to be caught in the catch block
-      }
-
-      console.log("User data fetched:", userData);
-
-      setUserDetails({
-        ...user,
-        ...userData,
-      });
-    } catch (error) {
-      console.error("Fetch user details exception:", error);
-      setUserDetails(null);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   useEffect(() => {
     console.log("UserProvider useEffect called");
     console.log("supabase", supabase);
+
+    const fetchUserDetails = async (user: any) => {
+      try {
+        console.log("Fetching user details for:", user.id);
+        const { data: userData, error } = await supabase
+          .from("users")
+          .select("firstName, lastName")
+          .eq("id", user.id)
+          .single();
+
+        if (error) {
+          throw error; // Throw the error to be caught in the catch block
+        }
+
+        console.log("User data fetched:", userData);
+
+        setUserDetails({
+          ...user,
+          ...userData,
+        });
+      } catch (error) {
+        console.error("Fetch user details exception:", error);
+        setUserDetails(null);
+      } finally {
+        setLoading(false);
+      }
+    };
+
     const { data: authListener } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         if (event === "SIGNED_IN" && session) {
