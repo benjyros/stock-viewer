@@ -28,11 +28,18 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
 
   const fetchUserDetails = async (user: any) => {
     try {
-      const { data: userData } = await supabase
+      console.log("Fetching user details for:", user.id);
+      const { data: userData, error } = await supabase
         .from("users")
         .select("firstName, lastName")
         .eq("id", user.id)
         .single();
+
+      if (error) {
+        console.error("Error fetching user details:", error);
+      }
+
+      console.log("User data fetched:", userData);
 
       setUserDetails({
         ...user,
