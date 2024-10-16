@@ -30,7 +30,7 @@ const UserContext = createContext<UserContextProps | undefined>(undefined);
 export function UserProvider({ children }: { children: React.ReactNode }) {
   const [userDetails, setUserDetails] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
-
+  console.log(supabase);
   const fetchUserDetails = async (user: any) => {
     try {
       console.log("Fetching user details for:", user.id);
