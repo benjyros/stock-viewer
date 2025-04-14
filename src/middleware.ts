@@ -15,8 +15,6 @@ export async function middleware(req: NextRequest) {
   const { supabaseResponse, user } = await updateSession(req);
   // Check if user is authenticated (user from session)
   const isAuthenticated = !!user; // This should now be accurate
-
-  console.log("is auth", isAuthenticated);
   
   const res = intlMiddleware(req) || NextResponse.next();
 

@@ -7,17 +7,11 @@ export const signIn = async (email: string, password: string) => {
         email,
         password,
     });
-
-    console.log("log after sign in", data);
-
     if (error) {
         console.error("Error during sign-in:", error);
         return { error };
     }
-
-    // You don't need to call setSession manually here
-    // The session will be automatically handled by Supabase
-    return { data };  // This already contains session info
+    return { data };
 }
 
 export const signOut = async () => {

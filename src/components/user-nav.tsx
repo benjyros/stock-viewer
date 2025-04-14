@@ -30,7 +30,7 @@ export function UserNav() {
       const { error } = await signOut();
   
       if (!error) {
-        //window.location.href = pathname;
+        window.location.href = pathname;
       } else {
         console.error("Sign out error:", error.message);
       }
@@ -55,9 +55,9 @@ export function UserNav() {
               />
             ) : (
               <AvatarFallback>
-                {userDetails?.firstName && userDetails?.firstName
-                  ? userDetails.firstName.charAt(0) +
-                    userDetails.lastName?.charAt(0)
+                {userDetails?.firstname && userDetails?.firstname
+                  ? userDetails.firstname.charAt(0) +
+                    userDetails.lastname?.charAt(0)
                   : "U"}
               </AvatarFallback>
             )}
