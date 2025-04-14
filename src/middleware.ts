@@ -1,5 +1,4 @@
 // src/middleware.ts
-
 import { NextRequest, NextResponse } from 'next/server';
 import createIntlMiddleware from 'next-intl/middleware';
 import { updateSession } from '@/lib/supabase/middleware';
@@ -13,14 +12,14 @@ const intlMiddleware = createIntlMiddleware({
 
 export async function middleware(req: NextRequest) {
   // First, update the session
-  await updateSession(req);
+  const { supabaseResponse, user } = await updateSession(req);
+  // Check if user is authenticated (user from session)
+  const isAuthenticated = !!user; // This should now be accurate
 
-  // Proceed with the internationalization middleware
+  console.log("is auth", isAuthenticated);
+  
   const res = intlMiddleware(req) || NextResponse.next();
 
-  const isAuthenticated = req.cookies.has(`sb-${process.env.NEXT_PUBLIC_SUPABASE_REFERENCE_ID}-auth-token`);
-
-  // Determine if the user is authenticated
   // Handle redirection logic
   const locale = req.cookies.get("NEXT_LOCALE")?.value || 'en';
 
@@ -53,7 +52,6 @@ export async function middleware(req: NextRequest) {
     return NextResponse.redirect(redirectUrl);
   }
 
-  // Return the response
   return res;
 }
 

@@ -1,8 +1,10 @@
 "use client";
 
 import React, { createContext, useContext, useEffect, useState } from "react";
-import supabase from "@/lib/supabase";
+import { NextRequest } from "next/server";
+import { createClient } from "@/lib/supabase/client";
 
+const supabase = createClient();
 interface User {
   id: string;
   email: string;
@@ -21,79 +23,97 @@ interface UserContextProps {
 
 const UserContext = createContext<UserContextProps | undefined>(undefined);
 
+// Helper to fetch additional details.
+async function fetchUserDetails(user: any, setUserDetails: (user: User | null) => void, setLoading: (loading: boolean) => void) {
+  try {
+    const { data: userData, error } = await supabase
+      .from("users")
+      .select("firstName, lastName")
+      .eq("id", user.id)
+      .single();
+    if (error) throw error;
+    console.log("User data fetched:", userData);
+    setUserDetails({ ...user, ...userData });
+  } catch (error) {
+    console.error("Fetch user details exception:", error);
+    setUserDetails(null);
+  } finally {
+    setLoading(false);
+  }
+}
+
+// Helper function to get cookie value by name.
+const getCookie = (cookieName: string): string | null => {
+  const nameEQ = cookieName + "=";
+  const ca = document.cookie.split(";");
+  for (let i = 0; i < ca.length; i++) {
+    let c = ca[i].trim();
+    if (c.indexOf(nameEQ) === 0) return c.substring(nameEQ.length, c.length);
+  }
+  return null;
+};
+
 export function UserProvider({ children }: { children: React.ReactNode }) {
   const [userDetails, setUserDetails] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    console.log("UserProvider useEffect called");
-    console.log("supabase", supabase);
+  const initializeUser = async () => {
+    // Option 1: Try to extract tokens from cookies.
+    // Adjust these cookie names if needed.
+    const access_token = getCookie("supabase.auth.access_token");
+    const refresh_token = getCookie("supabase.auth.refresh_token");
 
-    const fetchUserDetails = async (user: any) => {
+    if (access_token && refresh_token) {
+      console.log("Found tokens in cookies:", access_token, refresh_token);
       try {
-        console.log("Fetching user details for:", user.id);
-        const { data: userData, error } = await supabase
-          .from("users")
-          .select("firstName, lastName")
-          .eq("id", user.id)
-          .single();
-
-        if (error) {
-          throw error; // Throw the error to be caught in the catch block
+        // Set the session manually using the tokens from cookies.
+        await supabase.auth.setSession({ access_token, refresh_token });
+        // Re-fetch the session from the client.
+        const { data: { session } } = await supabase.auth.getSession();
+        console.log("Session after setting tokens:", session);
+        if (session && session.user) {
+          await fetchUserDetails(session.user, setUserDetails, setLoading);
+          return;
+        } else {
+          console.log("No session found after manually setting tokens.");
+          setLoading(false);
         }
-
-        console.log("User data fetched:", userData);
-
-        setUserDetails({
-          ...user,
-          ...userData,
-        });
       } catch (error) {
-        console.error("Fetch user details exception:", error);
-        setUserDetails(null);
-      } finally {
+        console.error("Error setting session with tokens:", error);
         setLoading(false);
       }
-    };
+    } else {
+      console.log("Tokens not available in cookies.");
+    }
 
+    // Option 2: Fallback to getting the session normally.
+    const { data: { session } } = await supabase.auth.getSession();
+    console.log("Session from supabase.auth.getSession():", session);
+    if (session && session.user) {
+      await fetchUserDetails(session.user, setUserDetails, setLoading);
+    } else {
+      console.log("No session found.");
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    initializeUser();
+
+    // Listen for auth state changes.
     const { data: authListener } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-        if (event === "SIGNED_IN" && session) {
-          setLoading(true);
-          await fetchUserDetails(session.user);
-        } else if (event === "SIGNED_OUT") {
-          setUserDetails(null);
-          setLoading(false);
+        console.log("Auth state change:", event, session);
+        if (session && session.user) {
+          await fetchUserDetails(session.user, setUserDetails, setLoading);
         } else {
+          setUserDetails(null);
           setLoading(false);
         }
       }
     );
-
-    const fetchUser = async () => {
-      try {
-        const {
-          data: { user },
-        } = await supabase.auth.getUser();
-
-        if (user) {
-          setLoading(true);
-          await fetchUserDetails(user);
-        } else {
-          setUserDetails(null);
-          setLoading(false);
-        }
-      } catch (error) {
-        console.error("Error fetching user on load:", error);
-        setUserDetails(null);
-        setLoading(false);
-      }
-    };
-
-    fetchUser();
-
     return () => {
-      authListener?.subscription?.unsubscribe();
+      authListener.subscription?.unsubscribe();
     };
   }, []);
 

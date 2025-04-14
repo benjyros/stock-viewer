@@ -1,3 +1,4 @@
+'use client'
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
@@ -19,20 +20,25 @@ export function UserNav() {
   const [isMounted, setIsMounted] = useState(false);
   const pathname = usePathname();
   const { userDetails, loading } = useUser();
-
+  
   useEffect(() => {
     setIsMounted(true);
   }, []);
-
+  
   const handleSignOut = async () => {
-    const { error } = await signOut();
-    if (!error) {
-      // Redirect to the current page (or elsewhere) to trigger the middleware
-      window.location.href = pathname;
-    } else {
-      console.error("Error during sign out:", error.message);
+    try {
+      const { error } = await signOut();
+  
+      if (!error) {
+        //window.location.href = pathname;
+      } else {
+        console.error("Sign out error:", error.message);
+      }
+    } catch (err) {
+      console.error("Sign out failed or hung:", err);
     }
   };
+
   if (!isMounted) {
     return null;
   }

@@ -3,14 +3,23 @@ import { createClient } from "./client";
 const supabase = createClient();
 
 export const signIn = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signInWithPassword({
+    const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
     });
-    return { error };
+
+    console.log("log after sign in", data);
+
+    if (error) {
+        console.error("Error during sign-in:", error);
+        return { error };
+    }
+
+    // You don't need to call setSession manually here
+    // The session will be automatically handled by Supabase
+    return { data };  // This already contains session info
 }
 
 export const signOut = async () => {
-    const { error } = await supabase.auth.signOut();
-    return { error };
+    return await supabase.auth.signOut();
 }
