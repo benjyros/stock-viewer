@@ -6,7 +6,10 @@ import { getMessages, unstable_setRequestLocale } from "next-intl/server";
 import { routing } from "@/i18n/routing";
 import Navbar from "@/components/navbar";
 import { Footer } from "@/components/footer";
+import { Toaster } from "@/components/ui/toaster";
 import { UserProvider } from "@/context/UserContext";
+import { auth } from "@/lib/auth"
+import { headers } from "next/headers";
 
 const defaultUrl = process.env.VERCEL_URL
   ? `https://${process.env.VERCEL_URL}`
@@ -33,6 +36,9 @@ export default async function LocaleLayout({
 }: LocaleLayoutProps) {
   unstable_setRequestLocale(locale);
   const messages = await getMessages();
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
 
   return (
     <html lang="en" className={GeistSans.className} suppressHydrationWarning>
@@ -46,9 +52,10 @@ export default async function LocaleLayout({
           >
             <UserProvider>
               <div className="flex flex-col gap-20 min-h-screen">
-                <Navbar />
+                <Navbar session={session} />
                 <main className="container flex-grow">{children}</main>
                 <Footer />
+                <Toaster />
               </div>
             </UserProvider>
           </ThemeProvider>

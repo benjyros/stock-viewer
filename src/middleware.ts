@@ -1,21 +1,29 @@
-// src/middleware.ts
+"user server";
 import { NextRequest, NextResponse } from 'next/server';
+import { headers } from 'next/headers';
 import createIntlMiddleware from 'next-intl/middleware';
-import { updateSession } from '@/lib/supabase/middleware';
+import { auth } from './lib/auth';
 
 const locales = ['en', 'de'];
+const authRoutes = ["/sign-in", "/sign-up", "/forgot-password"]
+const protectedRoutes = ["/protected"]
 
 const intlMiddleware = createIntlMiddleware({
   locales,
   defaultLocale: 'en',
 });
 
-export async function middleware(req: NextRequest) {
-  // First, update the session
-  const { supabaseResponse, user } = await updateSession(req);
-  // Check if user is authenticated (user from session)
-  const isAuthenticated = !!user; // This should now be accurate
-  
+export default async function authMiddleware(req: NextRequest) {
+  let session = null;
+
+  try {
+    const response = await auth.api.getSession({
+        headers: await headers()
+    }) 
+    session = response?.session;
+  } catch (err) {
+    // do nothing
+  }
   const res = intlMiddleware(req) || NextResponse.next();
 
   // Handle redirection logic
@@ -27,24 +35,25 @@ export async function middleware(req: NextRequest) {
 
   // Remove locale from pathname for matching
   const pathAfterLocale = newPathname.replace(new RegExp(`^/${locale}`), '') || '/';
-  const protectedPaths = ['/protected', '/protected/reset-password'];
-  const authPages = ['/sign-in', '/sign-up', '/forgot-password'];
 
-  const isProtectedRoute = protectedPaths.some((path) =>
+  const isProtectedRoute = protectedRoutes.some((path) =>
     pathAfterLocale.startsWith(path)
   );
-  const isAuthPage = authPages.some((path) =>
+  const isAuthRoute = authRoutes.some((path) =>
     pathAfterLocale.startsWith(path)
   );
-
-  if (isProtectedRoute && !isAuthenticated) {
+  
+  if (!session) {
+    if (isAuthRoute || !isProtectedRoute) {
+      return res;
+    }
     const redirectUrl = req.nextUrl.clone();
     redirectUrl.pathname = `/${locale}/sign-in`;
     redirectUrl.searchParams.set('redirectedFrom', newPathname);
     return NextResponse.redirect(redirectUrl);
   }
 
-  if (isAuthPage && isAuthenticated) {
+  if (isAuthRoute) {
     const redirectUrl = req.nextUrl.clone();
     redirectUrl.pathname = `/${locale}/`;
     return NextResponse.redirect(redirectUrl);

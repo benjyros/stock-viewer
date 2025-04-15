@@ -1,9 +1,7 @@
 "use client";
 
+import { authClient } from "@/lib/auth-client";
 import React, { createContext, useContext, useEffect, useState } from "react";
-import { createClient } from "@/lib/supabase/client";
-
-const supabase = createClient();
 
 interface User {
   id: string;
@@ -26,13 +24,15 @@ const UserContext = createContext<UserContextProps | undefined>(undefined);
 // Helper to fetch additional details.
 async function fetchUserDetails(user: any, setUserDetails: (user: User | null) => void, setLoading: (loading: boolean) => void) {
   try {
-    const { data: userData, error } = await supabase
-      .from("users")
-      .select("firstname, lastname")
-      .eq("uid", user.id)
-      .single();
-    if (error) throw error;
-    setUserDetails({ ...user, ...userData });
+
+  const { data: session, error } = await authClient.getSession()
+    // const { data: userData, error } = await supabase
+    //   .from("users")
+    //   .select("firstname, lastname")
+    //   .eq("uid", user.id)
+    //   .single();
+    // if (error) throw error;
+    // setUserDetails({ ...user, ...userData });
   } catch (error) {
     console.error("Fetch user details exception:", error);
     setUserDetails(null);
@@ -46,32 +46,35 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   const initializeUser = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (user) {
-      await fetchUserDetails(user, setUserDetails, setLoading);
-    } else {
-      console.log("No session found.");
-      setLoading(false);
-    }
+
+  const { data: session, error } = await authClient.getSession()
+  
+    // const { data: { user } } = await supabase.auth.getUser();
+    // if (user) {
+    //   await fetchUserDetails(user, setUserDetails, setLoading);
+    // } else {
+    //   console.log("No session found.");
+    //   setLoading(false);
+    // }
   };
 
   useEffect(() => {
     initializeUser();
 
     // Listen for auth state changes.
-    const { data: authListener } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        if (session && session.user) {
-          await fetchUserDetails(session.user, setUserDetails, setLoading);
-        } else {
-          setUserDetails(null);
-          setLoading(false);
-        }
-      }
-    );
-    return () => {
-      authListener.subscription?.unsubscribe();
-    };
+    // const { data: authListener } = supabase.auth.onAuthStateChange(
+    //   async (event, session) => {
+    //     if (session && session.user) {
+    //       await fetchUserDetails(session.user, setUserDetails, setLoading);
+    //     } else {
+    //       setUserDetails(null);
+    //       setLoading(false);
+    //     }
+    //   }
+    // );
+    // return () => {
+    //   authListener.subscription?.unsubscribe();
+    // };
   }, []);
 
   return (

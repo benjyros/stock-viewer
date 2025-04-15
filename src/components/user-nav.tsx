@@ -10,32 +10,66 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { toast } from "@/components/hooks/use-toast";
 import { Link } from "@/i18n/routing";
-import { useUser } from "../context/UserContext";
-import { signOut } from "@/lib/supabase/authClient";
+import { useUser } from "@/context/UserContext";
+import { authClient } from "@/lib/auth-client";
+import { Session } from "@/lib/auth";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
+import { Loader2 } from "lucide-react";
 
-export function UserNav() {
+interface User {
+  id: string;
+  name: string;
+  email: string;
+  emailVerified: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+  image?: string | null;
+}
+
+export default function UserNav({ session }: { session: Session | null }) {
   const [isMounted, setIsMounted] = useState(false);
+  const [user, setUser] = useState<User | null>(null);
   const pathname = usePathname();
-  const { userDetails, loading } = useUser();
-  
+  const { userDetails } = useUser();
+
   useEffect(() => {
     setIsMounted(true);
+    async function refreshSession() {
+      try {
+        const { data } = await authClient.getSession();
+        setUser(data?.user ?? null);
+      } catch (error) {
+        console.error("Error refreshing session:", error);
+      }
+    }
+    refreshSession();
   }, []);
   
   const handleSignOut = async () => {
     try {
-      const { error } = await signOut();
-  
+      toast({
+        description: <div className="flex gap-2 content-center"><Loader2 className="animate-spin" />Signing out...</div>,
+      })
+      const { error } = await authClient.signOut();
       if (!error) {
         window.location.href = pathname;
       } else {
+        toast({
+          variant: "destructive",
+          title: "Uh oh! Something went wrong.",
+          description: error.message,
+        })
         console.error("Sign out error:", error.message);
       }
     } catch (err) {
-      console.error("Sign out failed or hung:", err);
+      toast({
+        variant: "destructive",
+        title: "Uh oh! Something went wrong.",
+        description: "Sign out failed",
+      })
     }
   };
 
@@ -43,7 +77,7 @@ export function UserNav() {
     return null;
   }
 
-  return userDetails || loading ? (
+  return user ? (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" className="relative h-8 w-8 rounded-full">
