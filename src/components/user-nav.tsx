@@ -1,6 +1,6 @@
-'use client'
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
+"use client"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -9,60 +9,65 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { toast } from "@/components/hooks/use-toast";
-import { Link } from "@/i18n/routing";
-import { useUser } from "@/context/UserContext";
-import { authClient } from "@/lib/auth-client";
-import { Session } from "@/lib/auth";
-import { usePathname } from "next/navigation";
-import { useEffect, useState } from "react";
-import { Loader2 } from "lucide-react";
+} from "@/components/ui/dropdown-menu"
+import { toast } from "@/components/hooks/use-toast"
+import { Link } from "@/i18n/routing"
+import { useUser } from "@/context/UserContext"
+import { authClient } from "@/lib/auth-client"
+import type { Session } from "@/lib/auth"
+import { usePathname } from "next/navigation"
+import { useEffect, useState } from "react"
+import { Loader2, User, LogOut } from "lucide-react"
 
-interface User {
-  id: string;
-  name: string;
-  email: string;
-  emailVerified: boolean;
-  createdAt: Date;
-  updatedAt: Date;
-  image?: string | null;
+interface UserType {
+  id: string
+  name: string
+  email: string
+  emailVerified: boolean
+  createdAt: Date
+  updatedAt: Date
+  image?: string | null
 }
 
 export default function UserNav({ session }: { session: Session | null }) {
-  const [isMounted, setIsMounted] = useState(false);
-  const [user, setUser] = useState<User | null>(null);
-  const pathname = usePathname();
-  const { userDetails } = useUser();
+  const [isMounted, setIsMounted] = useState(false)
+  const [user, setUser] = useState<UserType | null>(null)
+  const pathname = usePathname()
+  const { userDetails } = useUser()
 
   useEffect(() => {
-    setIsMounted(true);
+    setIsMounted(true)
     async function refreshSession() {
       try {
-        const { data } = await authClient.getSession();
-        setUser(data?.user ?? null);
+        const { data } = await authClient.getSession()
+        setUser(data?.user ?? null)
       } catch (error) {
-        console.error("Error refreshing session:", error);
+        console.error("Error refreshing session:", error)
       }
     }
-    refreshSession();
-  }, []);
-  
+    refreshSession()
+  }, [])
+
   const handleSignOut = async () => {
     try {
       toast({
-        description: <div className="flex gap-2 content-center"><Loader2 className="animate-spin" />Signing out...</div>,
+        description: (
+          <div className="flex gap-2 content-center">
+            <Loader2 className="animate-spin" />
+            Signing out...
+          </div>
+        ),
       })
-      const { error } = await authClient.signOut();
+      const { error } = await authClient.signOut()
       if (!error) {
-        window.location.href = pathname;
+        window.location.href = pathname
       } else {
         toast({
           variant: "destructive",
           title: "Uh oh! Something went wrong.",
           description: error.message,
         })
-        console.error("Sign out error:", error.message);
+        console.error("Sign out error:", error.message)
       }
     } catch (err) {
       toast({
@@ -71,10 +76,10 @@ export default function UserNav({ session }: { session: Session | null }) {
         description: "Sign out failed",
       })
     }
-  };
+  }
 
   if (!isMounted) {
-    return null;
+    return null
   }
 
   return user ? (
@@ -84,14 +89,13 @@ export default function UserNav({ session }: { session: Session | null }) {
           <Avatar className="h-8 w-8">
             {userDetails?.user_metadata?.avatar_url ? (
               <AvatarImage
-                src={userDetails.user_metadata.avatar_url}
+                src={userDetails.user_metadata.avatar_url || "/placeholder.svg"}
                 alt={userDetails?.user_metadata?.displayName || "User Avatar"}
               />
             ) : (
               <AvatarFallback>
                 {userDetails?.firstname && userDetails?.firstname
-                  ? userDetails.firstname.charAt(0) +
-                    userDetails.lastname?.charAt(0)
+                  ? userDetails.firstname.charAt(0) + userDetails.lastname?.charAt(0)
                   : "U"}
               </AvatarFallback>
             )}
@@ -101,30 +105,30 @@ export default function UserNav({ session }: { session: Session | null }) {
       <DropdownMenuContent className="w-56" align="end" forceMount>
         <DropdownMenuLabel className="font-normal">
           <div className="flex flex-col space-y-1">
-            <p className="text-sm font-medium leading-none">
-              {userDetails?.user_metadata.displayName ?? "Guest"}
-            </p>
-            <p className="text-xs leading-none text-muted-foreground">
-              {userDetails?.email || "Not logged in"}
-            </p>
+            <p className="text-sm font-medium leading-none">{userDetails?.user_metadata.displayName ?? "Guest"}</p>
+            <p className="text-xs leading-none text-muted-foreground">{userDetails?.email || "Not logged in"}</p>
           </div>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuGroup>
-          <DropdownMenuItem>Profile</DropdownMenuItem>
-          <DropdownMenuItem>Billing</DropdownMenuItem>
-          <DropdownMenuItem>Settings</DropdownMenuItem>
-          <DropdownMenuItem>New Team</DropdownMenuItem>
+          <DropdownMenuItem asChild>
+            <Link href="/account" className="flex items-center gap-2 cursor-pointer w-full">
+              <User className="h-4 w-4" />
+              <span>Account</span>
+            </Link>
+          </DropdownMenuItem>
+          {/* Additional menu items can be added here */}
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
-        <DropdownMenuItem onClick={handleSignOut}>Log out</DropdownMenuItem>
+        <DropdownMenuItem onClick={handleSignOut} className="flex items-center gap-2 cursor-pointer">
+          <LogOut className="h-4 w-4" />
+          <span>Log out</span>
+        </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
   ) : (
     <Button asChild size="sm" variant={"outline"}>
-      <Link href={`/sign-in?redirectedFrom=${encodeURIComponent(pathname)}`}>
-        Sign in
-      </Link>
+      <Link href={`/sign-in?redirectedFrom=${encodeURIComponent(pathname)}`}>Sign in</Link>
     </Button>
-  );
+  )
 }
